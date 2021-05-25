@@ -1,7 +1,7 @@
 import requests
 import json
 
-cache = {}                                                              #cache with exchanging rates
+cache = {}                                                          #cache with exchanging rates
 
 def get_request(cur_code):
     """Make a request to the URL to get exchange rates data for incoming currency code."""

@@ -39,9 +39,9 @@ if __name__ == '__main__':
     add_to_cache("eur", db)
     while True:
         out_cur_code = str(input()).lower()
-        amount_of_money = int(input())
-        if out_cur_code == "" or amount_of_money == "":
+        if out_cur_code == "":
             break
+        amount_of_money = int(input())
         if cur_code_check(out_cur_code, cache):
             print_answer(amount_of_money, out_cur_code, cache)
         else:

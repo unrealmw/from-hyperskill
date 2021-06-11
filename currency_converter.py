@@ -1,6 +1,10 @@
 import requests
 import json
 
+"""Objective of this programm is transfering your amount of money in one currency to another. 
+It recieves exchanging rates from www.floatrates.com  (json string), than converts it in python dictinary.
+Some of this data stores in "cache" for fast access to it. If we need another exchange rate we address to our dictionary, get and save it in the cache."""
+
 cache = {}                                                          #cache with exchanging rates
 
 def get_request(cur_code):

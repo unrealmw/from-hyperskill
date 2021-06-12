@@ -24,11 +24,11 @@ class Coffee:
             print("Sorry, not enough cups!")
         else:
             print("I have enough resources, making you a coffee!")
-            CoffeeMachine.water -= self.water
+            CoffeeMachine.water -= self.water                                   #refresh ingredients in coffee machine after creating coffee
             CoffeeMachine.milk -= self.milk
             CoffeeMachine.coffee -= self.coffee
             CoffeeMachine.cups -= self.cups
-            CoffeeMachine.money += self.money
+            CoffeeMachine.money += self.money                                   #adding money to machine
 
 
 class CoffeeMachine:

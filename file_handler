@@ -1,0 +1,181 @@
+import argparse
+import os
+import re
+import hashlib
+
+parser = argparse.ArgumentParser(description="Enter your directory to view files and subdirectories.")
+parser.add_argument("folder", type=str, help="Directory for check.", nargs="?")
+
+args = parser.parse_args()
+folder = args.folder
+
+
+def sorting_dict(some_dict: dict, option: int):
+    keys_lst = list(set([key[0] for key in some_dict.keys()]))
+    if option == 1:
+        keys_lst.sort(reverse=True)
+    elif option == 2:
+        keys_lst.sort(reverse=False)
+    return keys_lst
+
+
+def printing(size_lst: list, size_folders: dict):
+    for key in size_lst:
+        print(key, "bytes")
+        for k in size_folders.keys():
+            if key in k:
+                for value in size_folders[k]:
+                    print(value)
+        print("\n")
+
+
+def duplicates_searcher(size_folders: dict):
+    sub_dict = {}
+    for k, v in size_folders.items():
+        if len(v) > 1:
+            sub_dict.update({k: v})
+    return sub_dict
+
+
+def printing_dupls(size_lst: list, dupl: dict):
+    c = 1
+    for key in size_lst:
+        print(key, "bytes")
+        for k, v in dupl.items():
+            if key in k:
+                print("Hash:", k[1])
+                for value in v:
+                    print(str(c) + ".", value)
+                    c += 1
+        print("\n")
+
+
+def dicting_dupls(size_lst: list, dupl: dict):
+    numed_dict = {}
+    c = 1
+    for key in size_lst:
+        for k, v in dupl.items():
+            if key in k:
+                for value in v:
+                    numed_dict.update({c: value})
+                    c += 1
+    return numed_dict
+
+
+def format_checker(numbers: list, keys: tuple):
+    lst = []
+    for number in numbers:
+        if number not in keys:
+            lst.append(False)
+        else:
+            lst.append(True)
+    return all(lst)
+
+
+def folder_to_dict(root: str, f_format: str):
+    f_dict = {}
+    if f_format == "":
+        for address, dirs, files in os.walk(root):
+            for file in files:
+                full_address = os.path.join(address, file)
+                file_size = str(os.path.getsize(full_address))
+                m = hashlib.md5()
+                f = open(full_address, "rb")
+                for line in f:
+                    m.update(line)
+                f.close()
+                key_tuple = (file_size, m.hexdigest())
+                if key_tuple in f_dict.keys():
+                    f_dict[key_tuple].append(full_address)
+                else:
+                    f_dict[key_tuple] = [full_address, ]
+    else:
+        for address, dirs, files in os.walk(root):
+            for file in files:
+                regex = fr'([a-z_]+)(\.{f_format})'
+                if re.match(regex, file):
+                    full_address = os.path.join(address, file)
+                    file_size = str(os.path.getsize(full_address))
+                    m = hashlib.md5()
+                    f = open(full_address, "rb")
+                    for line in f:
+                        m.update(line)
+                    f.close()
+                    key_tuple = (file_size, m.hexdigest())
+                    if key_tuple in f_dict.keys():
+                        f_dict[key_tuple].append(full_address)
+                    else:
+                        f_dict[key_tuple] = [full_address, ]
+                else:
+                    continue
+    return f_dict
+
+
+def main():
+    if folder is None:
+        print("Directory is not specified")
+    else:
+        file_format = input("Enter file format:\n")
+        print("Size sorting options:\n"
+              "1. Descending\n"
+              "2. Ascending\n")
+        while True:
+            sort_option = int(input("Enter sorting option:\n"))
+            if sort_option not in (1, 2):
+                print("Wrong option")
+                continue
+            else:
+                break
+
+        folder_dict = folder_to_dict(folder, file_format)
+        list_keys = sorting_dict(folder_dict, sort_option)
+        printing(list_keys, folder_dict)
+        duplicates_dict = duplicates_searcher(folder_dict)
+        numerated_dict = dicting_dupls(list_keys, duplicates_dict)
+
+        while True:
+            duplicate_option = input("Check for duplicates?\n")
+            if duplicate_option != "yes":
+                continue
+            else:
+                printing_dupls(list_keys, duplicates_dict)
+                print("\n")
+                break
+
+        while True:
+            choice = input("Delete files?\n")
+            if choice == "yes":
+                while True:
+                    try:
+                        file_nums = input('Enter file numbers to delete:')
+                        if file_nums == "":
+                            print("Wrong format")
+                            continue
+                        else:
+                            file_nums = [int(i) for i in file_nums.split()]
+                            file_nums = sorted(file_nums)
+                            folders_keys = tuple(numerated_dict.keys())
+                    except ValueError:
+                        print("Wrong format")
+                        continue
+                    if format_checker(file_nums, folders_keys):
+                        total_space = 0
+                        for num in file_nums:
+                            del_folder = numerated_dict.get(num)
+                            total_space += int(os.path.getsize(del_folder))
+                            os.remove(del_folder)
+                        print("Total freed up space:", total_space, "bytes")
+                        break
+                    else:
+                        print(format_checker(file_nums, folders_keys))
+                        print("Wrong format")
+                        continue
+            elif choice == "no":
+                break
+            else:
+                print("Wrong option")
+                break
+
+
+if __name__ == "__main__":
+    main()
